@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -6,6 +6,7 @@
 <title>3.2 HỌC TỐT, VUI NHỘN - Giáo viên</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ... CSS giữ nguyên ... */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --g50:#e8f8f0;--g100:#c0ead6;--g400:#2ecc71;--g600:#27ae60;--g800:#1a6e40;
@@ -36,6 +37,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 .btn-danger{background:#fff;color:#e74c3c;border:1.5px solid #f5c6c6}
 .btn-danger:hover{background:#fff5f5}
 .btn-sm{padding:6px 12px;font-size:12px;border-radius:20px}
+.btn-copy{padding:4px 10px;font-size:11px;margin-left:8px}
 
 /* SETUP BANNER */
 .setup-banner{background:#fff3cd;border:1.5px solid #ffc107;border-radius:var(--r);padding:16px 20px;margin:16px 20px;font-size:14px;color:#856404}
@@ -115,6 +117,16 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 .qr-tab{padding:4px 12px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:20px;transition:.15s}
 .qr-tab.active{background:var(--g600);color:#fff}
 .qr-tab:hover:not(.active){background:var(--g50)}
+.qr-tab.disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
+
+/* Thông báo chưa kết nối Firebase trong QR panel */
+.qr-teacher-locked{
+  text-align:center;padding:30px 20px;background:var(--g50);border-radius:var(--r);
+  border:1.5px dashed var(--g400);
+}
+.qr-teacher-locked .icon{font-size:40px;margin-bottom:10px}
+.qr-teacher-locked h4{font-size:15px;color:var(--g600);margin-bottom:8px}
+.qr-teacher-locked p{font-size:13px;color:var(--muted)}
 
 .col-empty{padding:16px;text-align:center;font-size:12px;color:var(--muted)}
 .no-firebase{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
@@ -281,7 +293,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
   </div>
 </div>
 
-<!-- QR Panel với tabs cho Học sinh và Giáo viên -->
+<!-- QR Panel với tabs -->
 <div class="qr-panel" id="qr-panel" style="display:none">
   <div style="width:100%">
     <div class="qr-tabs">
@@ -310,22 +322,36 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
     
     <!-- QR cho Giáo viên -->
     <div id="qr-teacher-content" style="display:none">
-      <div class="qr-section">
-        <div class="qr-code-box">
-          <h4>👩‍🏫 Quét để vào trang quản lý</h4>
-          <canvas id="qr-canvas-teacher" width="140" height="140"></canvas>
-        </div>
-        <div class="qr-info">
-          <h3>📋 Giáo viên quét mã này</h3>
-          <p>Quét QR hoặc mở link bên dưới để vào trang quản lý (bao gồm cấu hình Firebase):</p>
-          <span class="qr-link" id="teacher-link">—</span>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-outline btn-sm" onclick="copyLink('teacher')">📋 Copy link</button>
-            <button class="btn btn-outline btn-sm" onclick="printQR('teacher')">🖨️ In QR</button>
+      <!-- Nội dung hiển thị khi đã kết nối Firebase -->
+      <div id="qr-teacher-ready">
+        <div class="qr-section">
+          <div class="qr-code-box">
+            <h4>👩‍🏫 Quét để vào trang quản lý</h4>
+            <canvas id="qr-canvas-teacher" width="140" height="140"></canvas>
           </div>
-          <p style="margin-top:10px;font-size:11px;color:var(--muted);background:var(--g50);padding:6px 10px;border-radius:6px">
-            💡 <strong>Lưu ý:</strong> Mã QR này chứa đầy đủ cấu hình Firebase. Giáo viên có thể quét để mở trang quản lý trên thiết bị khác mà không cần nhập lại cấu hình.
-          </p>
+          <div class="qr-info">
+            <h3>📋 Link trang quản lý (có sẵn cấu hình)</h3>
+            <p>Quét QR hoặc mở link bên dưới để vào trang quản lý:</p>
+            <span class="qr-link" id="teacher-link">—</span>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <button class="btn btn-outline btn-sm" onclick="copyLink('teacher')">📋 Copy link</button>
+              <button class="btn btn-outline btn-sm" onclick="printQR('teacher')">🖨️ In QR</button>
+            </div>
+            <p style="font-size:12px;color:var(--muted);background:var(--g50);padding:8px 12px;border-radius:6px">
+              ✅ <strong>Không cần nhập cấu hình!</strong> Link này đã chứa sẵn thông tin Firebase. 
+              Các giáo viên khác chỉ cần quét QR là dùng được ngay.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Nội dung hiển thị khi CHƯA kết nối Firebase -->
+      <div id="qr-teacher-locked" style="display:none">
+        <div class="qr-teacher-locked">
+          <div class="icon">🔒</div>
+          <h4>Chưa thể tạo QR cho giáo viên</h4>
+          <p>Vui lòng <strong>kết nối Firebase</strong> hoặc <strong>dùng thử (Demo)</strong> trước.<br>
+          Sau khi kết nối, QR sẽ tự động chứa cấu hình để các giáo viên khác dùng ngay.</p>
         </div>
       </div>
     </div>
@@ -351,13 +377,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
   </div>
 </div>
 
-<!-- LIGHTBOX (teacher: like + comment + delete card + rotate + save rotated) -->
+<!-- LIGHTBOX -->
 <div class="lb-overlay" id="lb-overlay" onclick="closeLightboxBg(event)">
   <div class="lb-inner">
     <div class="lb-img-side">
       <button class="lb-close" onclick="closeLightbox()">✕</button>
       
-      <!-- Nhóm nút xoay và lưu -->
       <div class="lb-rotate-controls">
         <button class="lb-rotate" id="lb-rotate-btn" onclick="rotateImage()" title="Xoay ảnh 90°">↻</button>
         <button class="lb-save-rotated" id="lb-save-rotated-btn" onclick="saveRotatedImage()" title="Lưu ảnh đã xoay">💾</button>
@@ -373,7 +398,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
         <div class="lb-caption" id="lb-caption"></div>
       </div>
 
-      <!-- Stats + action buttons -->
       <div class="lb-stats">
         <div class="lb-stat-item">
           <span class="ico">❤️</span>
@@ -385,7 +409,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
         </div>
       </div>
 
-      <!-- Teacher action row -->
       <div style="display:flex;border-bottom:1px solid #f0f0f0;flex-shrink:0">
         <button class="lb-like-btn" id="lb-like-btn" onclick="teacherLike()">
           <span class="lheart">🤍</span> Thả tim
@@ -398,7 +421,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
       <div class="lb-comments-head">BÌNH LUẬN</div>
       <div class="lb-comments-list" id="lb-cm-list"></div>
 
-      <!-- Teacher comment form -->
       <div class="lb-cm-form">
         <div class="lb-cm-form-title">👩‍🏫 GIÁO VIÊN BÌNH LUẬN</div>
         <div class="lb-cm-row">
@@ -419,13 +441,44 @@ import { getDatabase, ref, onValue, set, push, remove, update } from 'https://ww
 let db = null;
 let boardData = { title: '3.2 HỌC TỐT, VUI NHỘN', groups: {} };
 let isDemo = false;
-let lbGid = null, lbCid = null; // current lightbox card
-let currentQRMode = 'student'; // 'student' hoặc 'teacher'
+let isFirebaseConnected = false;
+let lbGid = null, lbCid = null;
+let currentQRMode = 'student';
 
 const TEACHER_NAME = '👩‍🏫 Giáo viên';
-
-// Biến lưu góc xoay hiện tại của ảnh trong lightbox
 let currentRotation = 0;
+
+// ── KIỂM TRA THAM SỐ URL ĐỂ TỰ ĐỘNG KẾT NỐI ─────────────────────
+function checkUrlParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const dbUrl = urlParams.get('db');
+  const projectId = urlParams.get('pid');
+  const apiKey = urlParams.get('key');
+  const authDomain = urlParams.get('auth');
+  
+  if (dbUrl && apiKey) {
+    // Tự động điền vào form
+    document.getElementById('cfg-dbUrl').value = dbUrl;
+    document.getElementById('cfg-projectId').value = projectId || '';
+    document.getElementById('cfg-apiKey').value = apiKey;
+    document.getElementById('cfg-authDomain').value = authDomain || '';
+    
+    // Tự động kết nối
+    const cfg = {
+      apiKey: apiKey,
+      authDomain: authDomain || '',
+      databaseURL: dbUrl,
+      projectId: projectId || '',
+    };
+    
+    localStorage.setItem('fb_config', JSON.stringify(cfg));
+    connectFirebase(cfg);
+    showToast('✅ Đã tự động kết nối Firebase từ link!');
+    
+    // Xóa tham số khỏi URL để tránh lặp lại
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
 
 // ── FIREBASE ──────────────────────────────────────────────────────
 window.saveFirebaseConfig = function() {
@@ -444,15 +497,21 @@ function connectFirebase(cfg) {
   try {
     const app = initializeApp(cfg);
     db = getDatabase(app);
+    isFirebaseConnected = true;
     document.getElementById('setup-banner').style.display = 'none';
     listenBoard();
     updateLinks();
+    updateTeacherTabState();
     showToast('✅ Kết nối Firebase thành công!');
-  } catch(e) { alert('❌ Lỗi kết nối: ' + e.message); }
+  } catch(e) { 
+    alert('❌ Lỗi kết nối: ' + e.message); 
+    isFirebaseConnected = false;
+  }
 }
 
 window.demoMode = function() {
   isDemo = true;
+  isFirebaseConnected = true; // Demo mode cũng coi như đã kết nối
   document.getElementById('setup-banner').style.display = 'none';
   boardData.groups = {
     g1:{name:'NHÓM 1',order:1,cards:{
@@ -465,6 +524,7 @@ window.demoMode = function() {
   renderBoard();
   document.getElementById('qr-panel').style.display = 'flex';
   updateLinks();
+  updateTeacherTabState();
 };
 
 function listenBoard() {
@@ -472,12 +532,32 @@ function listenBoard() {
     boardData = snap.val() || { title: '3.2 HỌC TỐT, VUI NHỘN', groups: {} };
     document.getElementById('board-title').textContent = boardData.title || '3.2 HỌC TỐT, VUI NHỘN';
     renderBoard();
-    // Refresh lightbox nếu đang mở
     if (lbGid && lbCid) {
       const c = boardData.groups?.[lbGid]?.cards?.[lbCid];
       if (c) refreshLightbox(lbGid, lbCid, c);
     }
   });
+}
+
+// Cập nhật trạng thái tab Giáo viên (hiển thị QR hoặc thông báo khóa)
+function updateTeacherTabState() {
+  const tabTeacher = document.getElementById('tab-teacher');
+  const readyDiv = document.getElementById('qr-teacher-ready');
+  const lockedDiv = document.getElementById('qr-teacher-locked');
+  
+  if (isFirebaseConnected || isDemo) {
+    tabTeacher.classList.remove('disabled');
+    readyDiv.style.display = 'block';
+    lockedDiv.style.display = 'none';
+    // Nếu đang ở tab teacher thì tạo QR
+    if (currentQRMode === 'teacher') {
+      generateQRForMode('teacher');
+    }
+  } else {
+    tabTeacher.classList.add('disabled');
+    readyDiv.style.display = 'none';
+    lockedDiv.style.display = 'block';
+  }
 }
 
 // ── RENDER BOARD ──────────────────────────────────────────────────
@@ -526,7 +606,7 @@ function renderBoard() {
   initDragAndDrop();
 }
 
-// ── DRAG AND DROP (reorder columns) ──────────────────────────────
+// ── DRAG AND DROP ──────────────────────────────────────────────
 function initDragAndDrop() {
   const board = document.getElementById('board');
   let dragSrc = null;
@@ -557,14 +637,12 @@ function initDragAndDrop() {
       if (!dragSrc || dragSrc === col) return;
       col.classList.remove('drag-over');
 
-      // Reorder in DOM
       const allCols = [...board.querySelectorAll('.col')];
       const srcIdx = allCols.indexOf(dragSrc);
       const tgtIdx = allCols.indexOf(col);
       if (srcIdx < tgtIdx) col.after(dragSrc);
       else col.before(dragSrc);
 
-      // Save new order
       saveColumnOrder();
     });
   });
@@ -751,7 +829,6 @@ function refreshLightbox(gid, cid, c) {
   setTimeout(() => { cmList.scrollTop = cmList.scrollHeight; }, 50);
 }
 
-// Teacher Like
 window.teacherLike = function() {
   if (!lbGid || !lbCid) return;
   const c = boardData.groups?.[lbGid]?.cards?.[lbCid];
@@ -770,7 +847,6 @@ window.teacherLike = function() {
   showToast('❤️ Đã thả tim!');
 };
 
-// Teacher Comment
 window.teacherComment = function() {
   const text = document.getElementById('lb-cm-text').value.trim();
   if (!text || !lbGid || !lbCid) return;
@@ -790,7 +866,6 @@ window.teacherComment = function() {
   showToast('💬 Đã gửi nhận xét!');
 };
 
-// Teacher Delete from lightbox
 window.teacherDeleteCard = function() {
   if (!lbGid || !lbCid) return;
   if (!confirm('Xoá ảnh này của học sinh?')) return;
@@ -816,7 +891,7 @@ document.getElementById('lb-cm-text').addEventListener('keydown', e => {
 function updateLinks() {
   const baseUrl = window.location.href.split('?')[0];
   const studentUrl = baseUrl.replace('teacher.html', 'student.html');
-  const teacherUrl = baseUrl; // Chính là trang hiện tại
+  const teacherUrl = baseUrl;
   
   const cfg = JSON.parse(localStorage.getItem('fb_config') || '{}');
   
@@ -834,7 +909,7 @@ function updateLinks() {
   }
   document.getElementById('student-link').textContent = studentFullUrl;
   
-  // Link cho giáo viên (bao gồm cấu hình Firebase)
+  // Link cho giáo viên (CÓ THAM SỐ FIREBASE để tự động kết nối)
   let teacherFullUrl = teacherUrl;
   if (cfg.databaseURL) {
     const params = new URLSearchParams();
@@ -843,14 +918,19 @@ function updateLinks() {
     params.set('key', cfg.apiKey || '');
     params.set('auth', cfg.authDomain || '');
     teacherFullUrl = teacherUrl.split('?')[0] + '?' + params.toString();
+  } else if (isDemo) {
+    teacherFullUrl = teacherUrl + '?demo=1';
   }
   document.getElementById('teacher-link').textContent = teacherFullUrl;
   
-  // Tạo QR cho chế độ hiện tại
   generateQRForMode(currentQRMode);
 }
 
 function generateQRForMode(mode) {
+  if (mode === 'teacher' && !isFirebaseConnected && !isDemo) {
+    return; // Chưa kết nối thì không tạo QR
+  }
+  
   const link = mode === 'student' 
     ? document.getElementById('student-link').textContent 
     : document.getElementById('teacher-link').textContent;
@@ -872,17 +952,24 @@ function generateQRForMode(mode) {
 }
 
 window.switchQRMode = function(mode) {
+  // Kiểm tra nếu chọn tab teacher nhưng chưa kết nối
+  if (mode === 'teacher' && !isFirebaseConnected && !isDemo) {
+    showToast('🔒 Vui lòng kết nối Firebase trước!');
+    return;
+  }
+  
   currentQRMode = mode;
   
-  // Cập nhật UI tabs
   document.getElementById('tab-student').classList.toggle('active', mode === 'student');
   document.getElementById('tab-teacher').classList.toggle('active', mode === 'teacher');
   
-  // Hiển thị nội dung tương ứng
   document.getElementById('qr-student-content').style.display = mode === 'student' ? 'block' : 'none';
   document.getElementById('qr-teacher-content').style.display = mode === 'teacher' ? 'block' : 'none';
   
-  // Tạo QR nếu chưa có
+  if (mode === 'teacher') {
+    updateTeacherTabState();
+  }
+  
   generateQRForMode(mode);
 };
 
@@ -942,7 +1029,7 @@ window.closeModal = id => document.getElementById(id).classList.remove('open');
 document.getElementById('modal-group').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal('modal-group'); });
 document.getElementById('new-group-name').addEventListener('keydown', e => { if (e.key === 'Enter') addGroup(); });
 
-// Auto-load config
+// Auto-load config và kiểm tra URL params
 const saved = localStorage.getItem('fb_config');
 if (saved) {
   const cfg = JSON.parse(saved);
@@ -950,7 +1037,15 @@ if (saved) {
   document.getElementById('cfg-authDomain').value = cfg.authDomain || '';
   document.getElementById('cfg-dbUrl').value = cfg.databaseURL || '';
   document.getElementById('cfg-projectId').value = cfg.projectId || '';
+  
+  // Tự động kết nối nếu có cấu hình đã lưu
+  if (cfg.apiKey && cfg.databaseURL) {
+    connectFirebase(cfg);
+  }
 }
+
+// Kiểm tra tham số URL (khi quét QR từ giáo viên khác)
+checkUrlParams();
 </script>
 </body>
 </html>
