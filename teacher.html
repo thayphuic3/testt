@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3.2 HỌC TỐT, VUI NHỘN</title>
+<title>3.2 HỌC TỐT, VUI NHỘN - Giáo viên</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -45,12 +45,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 .setup-banner label{font-size:12px;font-weight:700;display:block;margin-bottom:3px}
 
 /* BOARD */
-.board-wrap{
-  padding:16px 20px 40px;overflow-x:auto;user-select:none;
-  cursor:grab;
-}
-.board-wrap.is-panning{cursor:grabbing}
-.board-wrap.is-dragging-col{cursor:grabbing}
+.board-wrap{padding:16px 20px 40px;overflow-x:auto;user-select:none}
 .board{display:flex;gap:14px;align-items:flex-start;min-width:max-content}
 
 /* COLUMN — draggable */
@@ -107,11 +102,19 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 .card-del:hover{background:#c0392b;transform:scale(1.1)}
 
 /* QR panel */
-.qr-panel{background:var(--card);border:1.5px solid var(--g100);border-radius:var(--r);padding:16px;margin:0 20px 16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.qr-panel canvas{border-radius:8px;border:4px solid var(--g50)}
+.qr-panel{background:var(--card);border:1.5px solid var(--g100);border-radius:var(--r);padding:16px;margin:0 20px 16px;display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.qr-section{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.qr-code-box{text-align:center}
+.qr-code-box h4{font-size:13px;color:var(--muted);margin-bottom:6px}
+.qr-code-box canvas{border-radius:8px;border:4px solid var(--g50)}
+.qr-info{flex:1;min-width:200px}
 .qr-info h3{font-family:'Baloo 2',cursive;font-size:16px;color:var(--g600);margin-bottom:6px}
 .qr-info p{font-size:13px;color:var(--muted);margin-bottom:8px}
 .qr-link{background:var(--g50);border-radius:8px;padding:8px 12px;font-size:12px;font-family:monospace;color:var(--g800);word-break:break-all;border:1px solid var(--g100);display:block;margin-bottom:8px}
+.qr-tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1.5px solid var(--g100);padding-bottom:6px}
+.qr-tab{padding:4px 12px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:20px;transition:.15s}
+.qr-tab.active{background:var(--g600);color:#fff}
+.qr-tab:hover:not(.active){background:var(--g50)}
 
 .col-empty{padding:16px;text-align:center;font-size:12px;color:var(--muted)}
 .no-firebase{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
@@ -134,7 +137,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 .lb-inner{display:flex;width:100%;height:100%;overflow:hidden}
 
 .lb-img-side{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;min-width:0}
-.lb-img-side img{max-width:100%;max-height:100%;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.lb-img-side img{max-width:100%;max-height:100%;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.5);transition:transform 0.25s ease}
 .lb-author-badge{
   position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
   background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);
@@ -148,6 +151,24 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
   display:flex;align-items:center;justify-content:center;transition:.15s;z-index:10;
 }
 .lb-close:hover{background:rgba(255,255,255,0.3)}
+
+/* Nút xoay ảnh và lưu ảnh (góc trên trái) */
+.lb-rotate-controls{
+  position:absolute;top:16px;left:16px;
+  display:flex;flex-direction:column;gap:8px;
+  z-index:10;
+}
+.lb-rotate, .lb-save-rotated{
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);
+  border-radius:50%;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.lb-save-rotated{
+  background:rgba(39,174,96,0.7);
+  border-color:rgba(255,255,255,0.5);
+}
+.lb-rotate:hover, .lb-save-rotated:hover{background:rgba(255,255,255,0.3)}
+.lb-save-rotated:hover{background:rgba(39,174,96,0.9)}
 
 .lb-panel{width:340px;flex-shrink:0;background:#fff;display:flex;flex-direction:column;overflow:hidden}
 .lb-panel-head{padding:16px 18px 10px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
@@ -260,22 +281,59 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
   </div>
 </div>
 
-<!-- QR Panel -->
+<!-- QR Panel với tabs cho Học sinh và Giáo viên -->
 <div class="qr-panel" id="qr-panel" style="display:none">
-  <canvas id="qr-canvas" width="140" height="140"></canvas>
-  <div class="qr-info">
-    <h3>📱 Học sinh quét mã này</h3>
-    <p>Quét QR hoặc mở link bên dưới để vào trang đăng ảnh:</p>
-    <span class="qr-link" id="student-link">—</span>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-outline btn-sm" onclick="copyLink()">📋 Copy link</button>
-      <button class="btn btn-outline btn-sm" onclick="printQR()">🖨️ In QR</button>
+  <div style="width:100%">
+    <div class="qr-tabs">
+      <div class="qr-tab active" id="tab-student" onclick="switchQRMode('student')">👨‍🎓 Học sinh</div>
+      <div class="qr-tab" id="tab-teacher" onclick="switchQRMode('teacher')">👩‍🏫 Giáo viên</div>
+    </div>
+    
+    <!-- QR cho Học sinh -->
+    <div id="qr-student-content">
+      <div class="qr-section">
+        <div class="qr-code-box">
+          <h4>📱 Quét để đăng ảnh</h4>
+          <canvas id="qr-canvas-student" width="140" height="140"></canvas>
+        </div>
+        <div class="qr-info">
+          <h3>🎓 Học sinh quét mã này</h3>
+          <p>Quét QR hoặc mở link bên dưới để vào trang đăng ảnh:</p>
+          <span class="qr-link" id="student-link">—</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="copyLink('student')">📋 Copy link</button>
+            <button class="btn btn-outline btn-sm" onclick="printQR('student')">🖨️ In QR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- QR cho Giáo viên -->
+    <div id="qr-teacher-content" style="display:none">
+      <div class="qr-section">
+        <div class="qr-code-box">
+          <h4>👩‍🏫 Quét để vào trang quản lý</h4>
+          <canvas id="qr-canvas-teacher" width="140" height="140"></canvas>
+        </div>
+        <div class="qr-info">
+          <h3>📋 Giáo viên quét mã này</h3>
+          <p>Quét QR hoặc mở link bên dưới để vào trang quản lý (bao gồm cấu hình Firebase):</p>
+          <span class="qr-link" id="teacher-link">—</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="copyLink('teacher')">📋 Copy link</button>
+            <button class="btn btn-outline btn-sm" onclick="printQR('teacher')">🖨️ In QR</button>
+          </div>
+          <p style="margin-top:10px;font-size:11px;color:var(--muted);background:var(--g50);padding:6px 10px;border-radius:6px">
+            💡 <strong>Lưu ý:</strong> Mã QR này chứa đầy đủ cấu hình Firebase. Giáo viên có thể quét để mở trang quản lý trên thiết bị khác mà không cần nhập lại cấu hình.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Board -->
-<div class="board-wrap" id="board-wrap">
+<div class="board-wrap">
   <div class="board" id="board">
     <div class="no-firebase"><h2>🔌 Chưa kết nối Firebase</h2>Nhập thông tin Firebase ở trên để bắt đầu,<br>hoặc bấm "Dùng thử" để xem demo.</div>
   </div>
@@ -293,12 +351,19 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
   </div>
 </div>
 
-<!-- LIGHTBOX (teacher: like + comment + delete card) -->
+<!-- LIGHTBOX (teacher: like + comment + delete card + rotate + save rotated) -->
 <div class="lb-overlay" id="lb-overlay" onclick="closeLightboxBg(event)">
   <div class="lb-inner">
     <div class="lb-img-side">
       <button class="lb-close" onclick="closeLightbox()">✕</button>
-      <img id="lb-img" src="" alt="">
+      
+      <!-- Nhóm nút xoay và lưu -->
+      <div class="lb-rotate-controls">
+        <button class="lb-rotate" id="lb-rotate-btn" onclick="rotateImage()" title="Xoay ảnh 90°">↻</button>
+        <button class="lb-save-rotated" id="lb-save-rotated-btn" onclick="saveRotatedImage()" title="Lưu ảnh đã xoay">💾</button>
+      </div>
+      
+      <img id="lb-img" src="" alt="" style="transform: rotate(0deg);">
       <div class="lb-author-badge" id="lb-author-badge"></div>
     </div>
     <div class="lb-panel">
@@ -355,8 +420,12 @@ let db = null;
 let boardData = { title: '3.2 HỌC TỐT, VUI NHỘN', groups: {} };
 let isDemo = false;
 let lbGid = null, lbCid = null; // current lightbox card
+let currentQRMode = 'student'; // 'student' hoặc 'teacher'
 
 const TEACHER_NAME = '👩‍🏫 Giáo viên';
+
+// Biến lưu góc xoay hiện tại của ảnh trong lightbox
+let currentRotation = 0;
 
 // ── FIREBASE ──────────────────────────────────────────────────────
 window.saveFirebaseConfig = function() {
@@ -377,7 +446,7 @@ function connectFirebase(cfg) {
     db = getDatabase(app);
     document.getElementById('setup-banner').style.display = 'none';
     listenBoard();
-    updateStudentLink();
+    updateLinks();
     showToast('✅ Kết nối Firebase thành công!');
   } catch(e) { alert('❌ Lỗi kết nối: ' + e.message); }
 }
@@ -387,7 +456,7 @@ window.demoMode = function() {
   document.getElementById('setup-banner').style.display = 'none';
   boardData.groups = {
     g1:{name:'NHÓM 1',order:1,cards:{
-      c1:{author:'An',caption:'Bài vẽ của nhóm mình',img:'',likes:3,comments:{cm1:{author:'Bình',text:'Đẹp lắm!',ts:Date.now()-60000},cm2:{author:'👩‍🏫 Giáo viên',text:'Nhóm làm rất tốt!',ts:Date.now()-30000,isTeacher:true}},ts:Date.now()-120000},
+      c1:{author:'An',caption:'Bài vẽ của nhóm mình',img:'https://picsum.photos/400/300?random=1',likes:3,comments:{cm1:{author:'Bình',text:'Đẹp lắm!',ts:Date.now()-60000},cm2:{author:'👩‍🏫 Giáo viên',text:'Nhóm làm rất tốt!',ts:Date.now()-30000,isTeacher:true}},ts:Date.now()-120000},
     }},
     g2:{name:'NHÓM 2',order:2,cards:{}},
     g3:{name:'NHÓM 3',order:3,cards:{}},
@@ -395,7 +464,7 @@ window.demoMode = function() {
   };
   renderBoard();
   document.getElementById('qr-panel').style.display = 'flex';
-  document.getElementById('student-link').textContent = window.location.href.replace('teacher.html','student.html') + '?demo=1';
+  updateLinks();
 };
 
 function listenBoard() {
@@ -457,114 +526,48 @@ function renderBoard() {
   initDragAndDrop();
 }
 
-// ── PAN BY MOUSE (click background to drag scroll) ───────────────
-(function initPan() {
-  const wrap = document.getElementById('board-wrap');
-  let panning = false, startX = 0, startScroll = 0;
-
-  wrap.addEventListener('mousedown', e => {
-    const isInteractive = e.target.closest('.card,.col-head-btns,.btn,.overlay,.lb-overlay,button,input,textarea,a,.col-head');
-    if (isInteractive) return;
-    if (wrap.classList.contains('is-dragging-col')) return;
-    panning = true;
-    startX = e.clientX;
-    startScroll = wrap.scrollLeft;
-    wrap.classList.add('is-panning');
-    e.preventDefault();
-  });
-
-  window.addEventListener('mousemove', e => {
-    if (!panning) return;
-    wrap.scrollLeft = startScroll - (e.clientX - startX);
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (!panning) return;
-    panning = false;
-    wrap.classList.remove('is-panning');
-  });
-})();
-
-// ── DRAG AND DROP (reorder columns) + EDGE AUTO-SCROLL ───────────
+// ── DRAG AND DROP (reorder columns) ──────────────────────────────
 function initDragAndDrop() {
-  const wrap = document.getElementById('board-wrap');
   const board = document.getElementById('board');
   let dragSrc = null;
-  let edgeRAF = null;
-  let lastClientX = 0;
-
-  const EDGE_ZONE = 100;
-  const MAX_SPEED = 20;
-
-  function startEdgeScroll() {
-    stopEdgeScroll();
-    function step() {
-      const rect = wrap.getBoundingClientRect();
-      const distLeft  = lastClientX - rect.left;
-      const distRight = rect.right - lastClientX;
-      let speed = 0;
-      if (distLeft < EDGE_ZONE)       speed = -Math.round(MAX_SPEED * (1 - distLeft  / EDGE_ZONE));
-      else if (distRight < EDGE_ZONE) speed =  Math.round(MAX_SPEED * (1 - distRight / EDGE_ZONE));
-      if (speed !== 0) wrap.scrollLeft += speed;
-      edgeRAF = requestAnimationFrame(step);
-    }
-    edgeRAF = requestAnimationFrame(step);
-  }
-
-  function stopEdgeScroll() {
-    if (edgeRAF) { cancelAnimationFrame(edgeRAF); edgeRAF = null; }
-  }
 
   board.querySelectorAll('.col').forEach(col => {
     col.addEventListener('dragstart', e => {
       dragSrc = col;
       col.classList.add('dragging');
-      wrap.classList.add('is-dragging-col');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', col.dataset.gid);
     });
 
     col.addEventListener('dragend', () => {
       col.classList.remove('dragging');
-      wrap.classList.remove('is-dragging-col');
       board.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over'));
-      stopEdgeScroll();
-      dragSrc = null;
     });
 
     col.addEventListener('dragover', e => {
       e.preventDefault();
-      lastClientX = e.clientX;
       if (col !== dragSrc) {
         board.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over'));
         col.classList.add('drag-over');
       }
-      if (!edgeRAF) startEdgeScroll();
     });
 
     col.addEventListener('drop', e => {
       e.preventDefault();
       if (!dragSrc || dragSrc === col) return;
       col.classList.remove('drag-over');
-      stopEdgeScroll();
+
+      // Reorder in DOM
       const allCols = [...board.querySelectorAll('.col')];
       const srcIdx = allCols.indexOf(dragSrc);
       const tgtIdx = allCols.indexOf(col);
       if (srcIdx < tgtIdx) col.after(dragSrc);
       else col.before(dragSrc);
+
+      // Save new order
       saveColumnOrder();
     });
   });
-
-  wrap.addEventListener('dragover', e => {
-    if (!dragSrc) return;
-    lastClientX = e.clientX;
-    if (!edgeRAF) startEdgeScroll();
-  });
-  wrap.addEventListener('dragleave', e => {
-    if (dragSrc && !wrap.contains(e.relatedTarget)) stopEdgeScroll();
-  });
-  wrap.addEventListener('drop', () => stopEdgeScroll());
 }
 
 function saveColumnOrder() {
@@ -616,6 +619,92 @@ function doDeleteCard(gid, cid) {
   showToast('🗑 Đã xoá ảnh');
 }
 
+// ── XOAY ẢNH ──────────────────────────────────────────────────────
+window.rotateImage = function() {
+  const img = document.getElementById('lb-img');
+  currentRotation = (currentRotation + 90) % 360;
+  img.style.transform = `rotate(${currentRotation}deg)`;
+  showToast(`↻ Ảnh đã xoay ${currentRotation}°`);
+};
+
+// ── LƯU ẢNH ĐÃ XOAY ───────────────────────────────────────────────
+window.saveRotatedImage = async function() {
+  if (!lbGid || !lbCid) {
+    showToast('❌ Không có ảnh nào đang mở');
+    return;
+  }
+
+  const imgElement = document.getElementById('lb-img');
+  const originalSrc = imgElement.src;
+  
+  if (!originalSrc || originalSrc === window.location.href) {
+    showToast('❌ Không thể lưu ảnh này');
+    return;
+  }
+
+  if (currentRotation === 0) {
+    showToast('ℹ️ Ảnh đang ở góc 0°, không cần lưu');
+    return;
+  }
+
+  showToast('🔄 Đang xử lý ảnh...');
+
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+      image.src = originalSrc;
+    });
+
+    let width = image.width;
+    let height = image.height;
+    
+    if (currentRotation === 90 || currentRotation === 270) {
+      canvas.width = height;
+      canvas.height = width;
+    } else {
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((currentRotation * Math.PI) / 180);
+    ctx.drawImage(image, -width / 2, -height / 2, width, height);
+
+    const rotatedImageData = canvas.toDataURL('image/jpeg', 0.9);
+
+    if (isDemo) {
+      if (boardData.groups[lbGid]?.cards[lbCid]) {
+        boardData.groups[lbGid].cards[lbCid].img = rotatedImageData;
+        renderBoard();
+        
+        imgElement.src = rotatedImageData;
+        currentRotation = 0;
+        imgElement.style.transform = 'rotate(0deg)';
+        
+        showToast('✅ Đã lưu ảnh đã xoay (Demo)');
+      }
+    } else if (db) {
+      await set(ref(db, `board/groups/${lbGid}/cards/${lbCid}/img`), rotatedImageData);
+      
+      imgElement.src = rotatedImageData;
+      currentRotation = 0;
+      imgElement.style.transform = 'rotate(0deg)';
+      
+      showToast('✅ Đã lưu ảnh đã xoay lên hệ thống');
+    }
+  } catch (error) {
+    console.error('Lỗi khi xoay ảnh:', error);
+    showToast('❌ Lỗi khi xử lý ảnh: ' + error.message);
+  }
+};
+
 // ── LIGHTBOX ──────────────────────────────────────────────────────
 window.openLightbox = function(gid, cid) {
   const g = boardData.groups[gid];
@@ -623,6 +712,11 @@ window.openLightbox = function(gid, cid) {
   const c = (g.cards || {})[cid];
   if (!c) return;
   lbGid = gid; lbCid = cid;
+  
+  currentRotation = 0;
+  const img = document.getElementById('lb-img');
+  img.style.transform = 'rotate(0deg)';
+  
   refreshLightbox(gid, cid, c);
   document.getElementById('lb-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -653,7 +747,6 @@ function refreshLightbox(gid, cid, c) {
       }).join('')
     : '<div class="lb-no-comments">💬 Chưa có bình luận nào</div>';
 
-  // Scroll comment list xuống cuối
   const cmList = document.getElementById('lb-cm-list');
   setTimeout(() => { cmList.scrollTop = cmList.scrollHeight; }, 50);
 }
@@ -665,11 +758,9 @@ window.teacherLike = function() {
   if (!c) return;
   const newVal = (c.likes || 0) + 1;
 
-  // Update local
   if (boardData.groups[lbGid].cards[lbCid]) boardData.groups[lbGid].cards[lbCid].likes = newVal;
   document.getElementById('lb-likes').textContent = newVal;
 
-  // Animation
   const btn = document.getElementById('lb-like-btn');
   btn.classList.add('active');
   btn.querySelector('.lheart').textContent = '❤️';
@@ -710,54 +801,121 @@ window.closeLightbox = function() {
   document.getElementById('lb-overlay').classList.remove('open');
   document.body.style.overflow = '';
   lbGid = null; lbCid = null;
+  currentRotation = 0;
 };
 window.closeLightboxBg = function(e) {
   if (e.target === document.getElementById('lb-overlay')) closeLightbox();
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
-// Enter to send comment
 document.getElementById('lb-cm-text').addEventListener('keydown', e => {
   if (e.key === 'Enter') teacherComment();
 });
 
-// ── QR ────────────────────────────────────────────────────────────
-function updateStudentLink() {
-  const base = window.location.href.replace('teacher.html', 'student.html');
+// ── QR & LINKS ────────────────────────────────────────────────────
+function updateLinks() {
+  const baseUrl = window.location.href.split('?')[0];
+  const studentUrl = baseUrl.replace('teacher.html', 'student.html');
+  const teacherUrl = baseUrl; // Chính là trang hiện tại
+  
   const cfg = JSON.parse(localStorage.getItem('fb_config') || '{}');
-  const param = cfg.databaseURL
-    ? '?db='+encodeURIComponent(cfg.databaseURL)+'&pid='+encodeURIComponent(cfg.projectId)+'&key='+encodeURIComponent(cfg.apiKey)+'&auth='+encodeURIComponent(cfg.authDomain)
-    : '';
-  document.getElementById('student-link').textContent = base + param;
+  
+  // Link cho học sinh
+  let studentFullUrl = studentUrl;
+  if (cfg.databaseURL) {
+    const params = new URLSearchParams();
+    params.set('db', cfg.databaseURL);
+    params.set('pid', cfg.projectId || '');
+    params.set('key', cfg.apiKey || '');
+    params.set('auth', cfg.authDomain || '');
+    studentFullUrl = studentUrl + '?' + params.toString();
+  } else if (isDemo) {
+    studentFullUrl = studentUrl + '?demo=1';
+  }
+  document.getElementById('student-link').textContent = studentFullUrl;
+  
+  // Link cho giáo viên (bao gồm cấu hình Firebase)
+  let teacherFullUrl = teacherUrl;
+  if (cfg.databaseURL) {
+    const params = new URLSearchParams();
+    params.set('db', cfg.databaseURL);
+    params.set('pid', cfg.projectId || '');
+    params.set('key', cfg.apiKey || '');
+    params.set('auth', cfg.authDomain || '');
+    teacherFullUrl = teacherUrl.split('?')[0] + '?' + params.toString();
+  }
+  document.getElementById('teacher-link').textContent = teacherFullUrl;
+  
+  // Tạo QR cho chế độ hiện tại
+  generateQRForMode(currentQRMode);
 }
 
-window.showQR = function() {
-  const panel = document.getElementById('qr-panel');
-  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
-  if (panel.style.display === 'flex') generateQR();
-};
-
-function generateQR() {
-  const link = document.getElementById('student-link').textContent;
+function generateQRForMode(mode) {
+  const link = mode === 'student' 
+    ? document.getElementById('student-link').textContent 
+    : document.getElementById('teacher-link').textContent;
+    
   if (!link || link === '—') return;
-  const canvas = document.getElementById('qr-canvas');
+  
+  const canvasId = mode === 'student' ? 'qr-canvas-student' : 'qr-canvas-teacher';
+  const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,140,140);
+  ctx.clearRect(0, 0, 140, 140);
+  
   const div = document.createElement('div');
   new QRCode(div, { text: link, width: 140, height: 140, correctLevel: QRCode.CorrectLevel.M });
+  
   setTimeout(() => {
     const img = div.querySelector('img') || div.querySelector('canvas');
     if (img) ctx.drawImage(img, 0, 0, 140, 140);
   }, 200);
 }
 
-window.copyLink = function() {
-  navigator.clipboard.writeText(document.getElementById('student-link').textContent).then(() => showToast('📋 Đã copy link!'));
+window.switchQRMode = function(mode) {
+  currentQRMode = mode;
+  
+  // Cập nhật UI tabs
+  document.getElementById('tab-student').classList.toggle('active', mode === 'student');
+  document.getElementById('tab-teacher').classList.toggle('active', mode === 'teacher');
+  
+  // Hiển thị nội dung tương ứng
+  document.getElementById('qr-student-content').style.display = mode === 'student' ? 'block' : 'none';
+  document.getElementById('qr-teacher-content').style.display = mode === 'teacher' ? 'block' : 'none';
+  
+  // Tạo QR nếu chưa có
+  generateQRForMode(mode);
 };
-window.printQR = function() {
-  const canvas = document.getElementById('qr-canvas');
+
+window.showQR = function() {
+  const panel = document.getElementById('qr-panel');
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+  if (panel.style.display === 'flex') {
+    updateLinks();
+    generateQRForMode(currentQRMode);
+  }
+};
+
+window.copyLink = function(mode) {
+  const link = mode === 'student' 
+    ? document.getElementById('student-link').textContent 
+    : document.getElementById('teacher-link').textContent;
+  navigator.clipboard.writeText(link).then(() => showToast('📋 Đã copy link!'));
+};
+
+window.printQR = function(mode) {
+  const canvasId = mode === 'student' ? 'qr-canvas-student' : 'qr-canvas-teacher';
+  const canvas = document.getElementById(canvasId);
+  const title = mode === 'student' ? 'Học sinh đăng ảnh' : 'Giáo viên quản lý';
+  
   const win = window.open('');
-  win.document.write(`<img src="${canvas.toDataURL()}" style="width:300px"><p style="font-size:14px;font-family:sans-serif">Quét để đăng ảnh vào nhóm của bạn</p>`);
+  win.document.write(`
+    <div style="text-align:center;padding:20px">
+      <img src="${canvas.toDataURL()}" style="width:300px">
+      <h3 style="font-family:sans-serif;margin-top:16px">📱 Quét mã QR để vào trang</h3>
+      <p style="font-size:14px;font-family:sans-serif">${title} - Lớp 3.2</p>
+      <p style="font-size:12px;color:#666;margin-top:20px">${document.getElementById(mode + '-link').textContent}</p>
+    </div>
+  `);
   win.print();
 };
 
