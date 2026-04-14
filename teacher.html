@@ -45,7 +45,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 .setup-banner label{font-size:12px;font-weight:700;display:block;margin-bottom:3px}
 
 /* BOARD */
-.board-wrap{padding:16px 20px 40px;overflow-x:auto;user-select:none}
+.board-wrap{
+  padding:16px 20px 40px;overflow-x:auto;user-select:none;
+  cursor:grab;
+}
+.board-wrap.is-panning{cursor:grabbing}
+.board-wrap.is-dragging-col{cursor:grabbing}
 .board{display:flex;gap:14px;align-items:flex-start;min-width:max-content}
 
 /* COLUMN — draggable */
@@ -270,7 +275,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;color
 </div>
 
 <!-- Board -->
-<div class="board-wrap">
+<div class="board-wrap" id="board-wrap">
   <div class="board" id="board">
     <div class="no-firebase"><h2>🔌 Chưa kết nối Firebase</h2>Nhập thông tin Firebase ở trên để bắt đầu,<br>hoặc bấm "Dùng thử" để xem demo.</div>
   </div>
@@ -452,48 +457,114 @@ function renderBoard() {
   initDragAndDrop();
 }
 
-// ── DRAG AND DROP (reorder columns) ──────────────────────────────
+// ── PAN BY MOUSE (click background to drag scroll) ───────────────
+(function initPan() {
+  const wrap = document.getElementById('board-wrap');
+  let panning = false, startX = 0, startScroll = 0;
+
+  wrap.addEventListener('mousedown', e => {
+    const isInteractive = e.target.closest('.card,.col-head-btns,.btn,.overlay,.lb-overlay,button,input,textarea,a,.col-head');
+    if (isInteractive) return;
+    if (wrap.classList.contains('is-dragging-col')) return;
+    panning = true;
+    startX = e.clientX;
+    startScroll = wrap.scrollLeft;
+    wrap.classList.add('is-panning');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!panning) return;
+    wrap.scrollLeft = startScroll - (e.clientX - startX);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!panning) return;
+    panning = false;
+    wrap.classList.remove('is-panning');
+  });
+})();
+
+// ── DRAG AND DROP (reorder columns) + EDGE AUTO-SCROLL ───────────
 function initDragAndDrop() {
+  const wrap = document.getElementById('board-wrap');
   const board = document.getElementById('board');
   let dragSrc = null;
+  let edgeRAF = null;
+  let lastClientX = 0;
+
+  const EDGE_ZONE = 100;
+  const MAX_SPEED = 20;
+
+  function startEdgeScroll() {
+    stopEdgeScroll();
+    function step() {
+      const rect = wrap.getBoundingClientRect();
+      const distLeft  = lastClientX - rect.left;
+      const distRight = rect.right - lastClientX;
+      let speed = 0;
+      if (distLeft < EDGE_ZONE)       speed = -Math.round(MAX_SPEED * (1 - distLeft  / EDGE_ZONE));
+      else if (distRight < EDGE_ZONE) speed =  Math.round(MAX_SPEED * (1 - distRight / EDGE_ZONE));
+      if (speed !== 0) wrap.scrollLeft += speed;
+      edgeRAF = requestAnimationFrame(step);
+    }
+    edgeRAF = requestAnimationFrame(step);
+  }
+
+  function stopEdgeScroll() {
+    if (edgeRAF) { cancelAnimationFrame(edgeRAF); edgeRAF = null; }
+  }
 
   board.querySelectorAll('.col').forEach(col => {
     col.addEventListener('dragstart', e => {
       dragSrc = col;
       col.classList.add('dragging');
+      wrap.classList.add('is-dragging-col');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', col.dataset.gid);
     });
 
     col.addEventListener('dragend', () => {
       col.classList.remove('dragging');
+      wrap.classList.remove('is-dragging-col');
       board.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over'));
+      stopEdgeScroll();
+      dragSrc = null;
     });
 
     col.addEventListener('dragover', e => {
       e.preventDefault();
+      lastClientX = e.clientX;
       if (col !== dragSrc) {
         board.querySelectorAll('.col').forEach(c => c.classList.remove('drag-over'));
         col.classList.add('drag-over');
       }
+      if (!edgeRAF) startEdgeScroll();
     });
 
     col.addEventListener('drop', e => {
       e.preventDefault();
       if (!dragSrc || dragSrc === col) return;
       col.classList.remove('drag-over');
-
-      // Reorder in DOM
+      stopEdgeScroll();
       const allCols = [...board.querySelectorAll('.col')];
       const srcIdx = allCols.indexOf(dragSrc);
       const tgtIdx = allCols.indexOf(col);
       if (srcIdx < tgtIdx) col.after(dragSrc);
       else col.before(dragSrc);
-
-      // Save new order
       saveColumnOrder();
     });
   });
+
+  wrap.addEventListener('dragover', e => {
+    if (!dragSrc) return;
+    lastClientX = e.clientX;
+    if (!edgeRAF) startEdgeScroll();
+  });
+  wrap.addEventListener('dragleave', e => {
+    if (dragSrc && !wrap.contains(e.relatedTarget)) stopEdgeScroll();
+  });
+  wrap.addEventListener('drop', () => stopEdgeScroll());
 }
 
 function saveColumnOrder() {
